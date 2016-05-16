@@ -4,6 +4,12 @@ deliver electronic mail with scala from the [future](http://www.scala-lang.org/a
 
 ![courier](http://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Courrier.jpg/337px-Courrier.jpg)
 
+This is a Scala wrapper to JavaMail, forked from softprops/courier with the following updates:
+ - Incorporated other pull requests, especially ability to set the SSL flag
+ - Better handling of multipart messages
+ - Upgraded to the latest JavaMail version (1.5.5)
+ - Temporarily removed bintray stuff from build.sbt
+
 ## install
 
 Via the copy and paste method
@@ -33,7 +39,7 @@ import courier._, Defaults._
 val mailer = Mailer("smtp.gmail.com", 587)
                .auth(true)
                .as("you@gmail.com", "p@$$w3rd")
-               .startTtls(true)()
+               .startTls(true)()
                      
 mailer(Envelope.from("you" `@` "gmail.com")
         .to("mom" `@` "gmail.com")
@@ -53,6 +59,8 @@ mailer(Envelope.from("you" `@` "work.com")
              case _ => println("delivered report")
            }
 ```
+
+If using SSL/TLS instead of STARTTLS, substitute `.startTls(true)` with `.ssl(true)` when setting up the `Mailer`.
 
 ## testing
 
@@ -86,7 +94,9 @@ class MailSpec extends Specification with NoTimeConversions {
           val momsMsg = momsInbox.get(0)
           momsMsg.getContent === "hi mom"
           momsMsg.getSubject === "miss you"
-        }       	  	}  }
+        }       	
+  	}
+  }
 }        
 ```
 

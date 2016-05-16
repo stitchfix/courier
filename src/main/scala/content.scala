@@ -2,6 +2,7 @@ package courier
 
 import javax.activation.{ DataHandler, FileDataSource }
 import javax.mail.internet.{ MimeBodyPart, MimeMultipart }
+
 import java.io.File
 import java.nio.charset.Charset
 import javax.mail.util.ByteArrayDataSource
@@ -12,10 +13,10 @@ case class Text(body: String, charset: Charset = Charset.defaultCharset)
   extends Content
 
 case class Multipart(
-  _parts: Seq[MimeBodyPart] = Seq.empty[MimeBodyPart])
+  _parts: Seq[MimeBodyPart] = Seq.empty[MimeBodyPart], _subtype: String = "mixed")
   extends Content {
   def add(part: MimeBodyPart): Multipart =
-    Multipart(_parts :+ part)
+    Multipart(_parts :+ part, _subtype)
   def add(
     bytes: Array[Byte],
     mimetype: String,
@@ -51,8 +52,17 @@ case class Multipart(
       setFileName(name)
     })
 
-  def parts =
-    new MimeMultipart() {
+  def addMultipart(mp : MimeMultipart) =
+    add(new MimeBodyPart {
+      setContent(mp)
+    })
+
+  def withSubtype(st : String) = Multipart(_parts, st)
+
+  def asMimeMultipart =
+    new MimeMultipart(_subtype) {
       _parts.foreach(addBodyPart(_))
     }
+
+  def parts = _parts
 }

@@ -15,15 +15,16 @@ case class Mailer(
 
   def apply(e: Envelope)(implicit ec: ExecutionContext): Future[Unit] = {
     val msg = new MimeMessage(_session) {
-      e.subject.map(setSubject(_))
+      e.subject.foreach(t => setSubject(t._1, t._2.name()))
       setFrom(e.from)
       e.to.foreach(addRecipient(Message.RecipientType.TO, _))
       e.cc.foreach(addRecipient(Message.RecipientType.CC, _))
       e.bcc.foreach(addRecipient(Message.RecipientType.BCC, _))
+      if (e.replyTo.isDefined) setReplyTo(e.replyTo.toArray)
       e.headers.foreach(h => addHeader(h._1, h._2))
       e.contents match {
         case Text(txt, charset) => setText(txt, charset.displayName)
-        case mp @ Multipart(_) => setContent(mp.parts)
+        case mp @ Multipart(_,_) => setContent(mp.asMimeMultipart)
       }
     }
     Future {
